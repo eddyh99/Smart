@@ -1,0 +1,25 @@
+geOfInterest){const mainThreadEventRanges=tr.b.math.convertEventsToRanges(mainThreadEvents);const networkEventRanges=tr.b.math.convertEventsToRanges(networkEvents);const eventRanges=mainThreadEventRanges.concat(networkEventRanges);const idleRanges=tr.b.math.findEmptyRangesBetweenRanges(eventRanges,rangeOfInterest);const totalFreeDuration=tr.b.math.Statistics.sum(idleRanges,range=>range.duration);breakdownTree.idle={total:totalFreeDuration,events:{}};let totalBlockedDuration=rangeOfInterest.duration;for(const[title,component]of Object.entries(breakdownTree)){if(title==='v8_runtime')continue;totalBlockedDuration-=component.total;}
+breakdownTree.blocked_on_network={total:Math.max(totalBlockedDuration,0),events:{}};}
+function generateWallClockTimeBreakdownTree(mainThread,networkEvents,rangeOfInterest){const breakdownTree=generateTimeBreakdownTree(mainThread,rangeOfInterest,getWallClockSelfTime_);const mainThreadEventsInRange=tr.model.helpers.getSlicesIntersectingRange(rangeOfInterest,mainThread.sliceGroup.topLevelSlices);addIdleAndBlockByNetworkBreakdown_(breakdownTree,mainThreadEventsInRange,networkEvents,rangeOfInterest);return breakdownTree;}
+function generateCpuTimeBreakdownTree(mainThread,rangeOfInterest){return generateTimeBreakdownTree(mainThread,rangeOfInterest,getCPUSelfTime_);}
+return{generateTimeBreakdownTree,generateWallClockTimeBreakdownTree,generateCpuTimeBreakdownTree,};});'use strict';tr.exportTo('tr.e.chrome',function(){const LCP_CANDIDATE_EVENT_TITLE='NavStartToLargestContentfulPaint::Candidate::AllFrames::UKM';const LCP_INVALIDATE_EVENT_TITLE='NavStartToLargestContentfulPaint::Invalidate::AllFrames::UKM';class LcpEvent{constructor(event){if(!LcpInvalidateEvent.isLcpInvalidateEvent(event)&&!LcpCandidateEvent.isLcpCandidateEvent(event)){throw new Error('The LCP event should be either a candidate event or'+'an invalidate event.');}
+if(event.start===undefined||event.args.main_frame_tree_node_id===undefined){throw new Error('The LCP event is in unexpected format.');}
+this.start=event.start;this.mainFrameTreeNodeId=event.args.main_frame_tree_node_id;}}
+class LcpCandidateEvent extends LcpEvent{constructor(event){super(event);const{durationInMilliseconds,size,type,inMainFrame}=event.args.data;if(durationInMilliseconds===undefined||size===undefined||type===undefined||inMainFrame===undefined||event.args.main_frame_tree_node_id===undefined||!LcpCandidateEvent.isLcpCandidateEvent(event)){throw new Error('The LCP candidate event is in unexpected format.');}
+this.durationInMilliseconds=durationInMilliseconds;this.size=size;this.type=type;this.inMainFrame=inMainFrame;}
+static isLcpCandidateEvent(event){return event.title===LCP_CANDIDATE_EVENT_TITLE;}}
+class LcpInvalidateEvent extends LcpEvent{constructor(event){super(event);if(!LcpInvalidateEvent.isLcpInvalidateEvent(event)){throw new Error('The LCP invalidate event is in unexpected format.');}}
+static isLcpInvalidateEvent(event){return event.title===LCP_INVALIDATE_EVENT_TITLE;}}
+class LargestContentfulPaint{constructor(allBrowserEvents){this.allBrowserEvents=allBrowserEvents;}
+findCandidates(){const finalLcpEvents=this.findFinalLcpEventOfEachNavigation(this.allBrowserEvents);const finalCandidates=finalLcpEvents.filter(finalLcpEvent=>!LcpInvalidateEvent.isLcpInvalidateEvent(finalLcpEvent));return finalCandidates;}
+findFinalLcpEventOfEachNavigation(allBrowserEvents){const lcpEvents=[];for(const lcpEvent of allBrowserEvents){if(LcpCandidateEvent.isLcpCandidateEvent(lcpEvent)){lcpEvents.push(new LcpCandidateEvent(lcpEvent));}else if(LcpInvalidateEvent.isLcpInvalidateEvent(lcpEvent)){lcpEvents.push(new LcpInvalidateEvent(lcpEvent));}}
+const lcpEventsGroupedByNavigation=new Map();for(const e of lcpEvents){const key=e.mainFrameTreeNodeId;if(!lcpEventsGroupedByNavigation.has(key)){lcpEventsGroupedByNavigation.set(key,[]);}
+lcpEventsGroupedByNavigation.get(key).push(e);}
+const finalLcpEventOfEachNavigation=[];for(const lcpEventList of lcpEventsGroupedByNavigation.values()){lcpEventList.sort((a,b)=>a.start-b.start);finalLcpEventOfEachNavigation.push(lcpEventList[lcpEventList.length-1]);}
+return finalLcpEventOfEachNavigation;}}
+return{LCP_CANDIDATE_EVENT_TITLE,LCP_INVALIDATE_EVENT_TITLE,LargestContentfulPaint,};});'use strict';tr.exportTo('tr.b.math',function(){function earthMoversDistance(firstHistogram,secondHistogram){const buckets=firstHistogram.length;if(secondHistogram.length!==buckets){throw new Error('Histograms have a different number of bins.');}
+const arrSum=arr=>arr.reduce((a,b)=>a+b,0);if(arrSum(firstHistogram)!==arrSum(secondHistogram)){throw new Error('The histograms\' sizes don\'t match.');}
+let total=0;let remainder=0;for(let bucket=0;bucket<buckets;bucket++){remainder+=secondHistogram[bucket]-
+firstHistogram[bucket];total+=Math.abs(remainder);}
+return total;}
+return{earthMoversDistance,};});'use strict';tr.exportTo('tr.e.chrome',function(){const earthMoversDistance=tr.b.math.earthMoversDistance;class SpeedIndex{static getSnapshotsProgress_(time

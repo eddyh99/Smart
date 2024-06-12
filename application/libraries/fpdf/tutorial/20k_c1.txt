@@ -1,0 +1,35 @@
+hashKey;if(candidate.hashKey!==undefined){if(keysToDiagnostics.has(hashKey)){hist.diagnostics.set(name,keysToDiagnostics.get(hashKey));}else{keysToDiagnostics.set(hashKey,candidate);this.sharedDiagnosticsByGuid_.set(candidate.guid,candidate);}
+continue;}
+if(diagnosticsToHistograms.get(candidate)===undefined){diagnosticsToHistograms.set(candidate,[hist]);}else{diagnosticsToHistograms.get(candidate).push(hist);}
+if(!namesToCandidates.has(name)){namesToCandidates.set(name,new Set());}
+namesToCandidates.get(name).add(candidate);}}
+for(const[name,candidates]of namesToCandidates){const deduplicatedDiagnostics=new Set();for(const candidate of candidates){let found=false;for(const test of deduplicatedDiagnostics){if(candidate.equals(test)){const hists=diagnosticsToHistograms.get(candidate);for(const hist of hists){hist.diagnostics.set(name,test);}
+found=true;break;}}
+if(!found){deduplicatedDiagnostics.add(candidate);}
+for(const diagnostic of deduplicatedDiagnostics){this.sharedDiagnosticsByGuid_.set(diagnostic.guid,diagnostic);}}}}
+buildGroupingsFromTags(names){const tags=new Map();for(const hist of this){for(const name of names){if(!hist.diagnostics.has(name))continue;if(!tags.has(name))tags.set(name,new Set());for(const tag of hist.diagnostics.get(name)){tags.get(name).add(tag);}}}
+const groupings=[];for(const[name,values]of tags){const built=tr.v.HistogramGrouping.buildFromTags(values,name);for(const grouping of built){groupings.push(grouping);}}
+return groupings;}}
+return{HistogramSet};});'use strict';tr.exportTo('tr.e.chrome',function(){function hasTitleAndCategory(event,title,category){return event.title===title&&event.category&&tr.b.getCategoryParts(event.category).includes(category);}
+function getNavStartTimestamps(rendererHelper){const navStartTimestamps=[];for(const e of rendererHelper.mainThread.sliceGroup.childEvents()){if(hasTitleAndCategory(e,'navigationStart','blink.user_timing')){navStartTimestamps.push(e.start);}}
+return navStartTimestamps;}
+function getInteractiveTimestamps(model){const interactiveTimestampsMap=new Map();const chromeHelper=model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);for(const rendererHelper of Object.values(chromeHelper.rendererHelpers)){const timestamps=[];interactiveTimestampsMap.set(rendererHelper.pid,timestamps);}
+for(const expectation of model.userModel.expectations){if(!(expectation instanceof tr.model.um.LoadExpectation))continue;if(tr.e.chrome.CHROME_INTERNAL_URLS.includes(expectation.url)){continue;}
+if(expectation.timeToInteractive===undefined)continue;if(interactiveTimestampsMap.get(expectation.renderProcess.pid)===undefined){interactiveTimestampsMap.set(expectation.renderProcess.pid,[]);}
+interactiveTimestampsMap.get(expectation.renderProcess.pid).push(expectation.timeToInteractive);}
+return interactiveTimestampsMap;}
+function getPostInteractiveTaskWindows(interactiveTimestamps,navStartTimestamps,traceEndTimestamp){let navStartTsIndex=0;let lastTaskWindowEndTs=undefined;const taskWindows=[];for(const currTTI of interactiveTimestamps){while(navStartTsIndex<navStartTimestamps.length&&navStartTimestamps[navStartTsIndex]<currTTI){navStartTsIndex++;}
+const taskWindowEndTs=navStartTsIndex<navStartTimestamps.length?navStartTimestamps[navStartTsIndex]:traceEndTimestamp;if(taskWindowEndTs===lastTaskWindowEndTs){throw Error('Encountered two consecutive interactive timestamps '+'with no navigationStart between them. '+'PostInteractiveTaskWindow is not well defined in this case.');}
+taskWindows.push(tr.b.math.Range.fromExplicitRange(currTTI,taskWindowEndTs));lastTaskWindowEndTs=taskWindowEndTs;}
+return taskWindows;}
+function contributionToEQT(window,task){const startInWindow=Math.max(window.min,task.start);const endInWindow=Math.min(window.max,task.end);const durationInWindow=endInWindow-startInWindow;if(durationInWindow<=0)return 0;const probabilityOfTask=durationInWindow/(window.max-window.min);const minQueueingTime=task.end-endInWindow;const maxQueueingTime=task.end-startInWindow;const expectedQueueingTimeDueToTask=(maxQueueingTime+minQueueingTime)/2;return probabilityOfTask*expectedQueueingTimeDueToTask;}
+function weightedExpectedQueueingTime(window,weightedTasks){let result=0;for(const task of weightedTasks){result+=contributionToEQT(window,task)*task.weight;}
+return result;}
+function expectedQueueingTime(window,tasks){return weightedExpectedQueueingTime(window,tasks.map(function(task){return{start:task.start,end:task.end,weight:1};}));}
+class SlidingWindow{constructor(startTime,windowSize,sortedTasks){this.windowSize_=windowSize;this.sortedTasks_=sortedTasks;this.range_=tr.b.math.Range.fromExplicitRange(startTime,startTime+windowSize);this.firstTaskIndex_=sortedTasks.findIndex(task=>startTime<task.end);if(this.firstTaskIndex_===-1){this.firstTaskIndex_=sortedTasks.length;}
+this.lastTaskIndex_=-1;while(this.lastTaskIndex_+1<sortedTasks.length&&sortedTasks[this.lastTaskIndex_+1].start<startTime+windowSize){this.lastTaskIndex_++;}
+this.innerEQT_=0;for(let i=this.firstTaskIndex_+1;i<this.lastTaskIndex_;i++){this.innerEQT_+=contributionToEQT(this.range_,sortedTasks[i]);}}
+get getEQT(){let firstTaskEQT=0;if(this.firstTaskIndex_<this.sortedTasks_.length){firstTaskEQT=contributionToEQT(this.range_,this.sortedTasks_[this.firstTaskIndex_]);}
+let lastTaskEQT=0;if(this.firstTaskIndex_<this.lastTaskIndex_){lastTaskEQT=contributionToEQT(this.range_,this.sortedTasks_[this.lastTaskIndex_]);}
+return firstTaskEQT+this.innerEQT_+lastTaskEQT;}
+slide(t){this.range_=tr.b.math.Range.

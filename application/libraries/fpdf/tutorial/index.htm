@@ -1,0 +1,6 @@
+blocksPerColumnForMcu=mcusPerColumn*component.v;var blocks=[];for(var i=0;i<blocksPerColumnForMcu;i++){var row=[];for(var j=0;j<blocksPerLineForMcu;j++)
+row.push(new Int32Array(64));blocks.push(row);}
+component.blocksPerLine=blocksPerLine;component.blocksPerColumn=blocksPerColumn;component.blocks=blocks;}}
+frame.maxH=maxH;frame.maxV=maxV;frame.mcusPerLine=mcusPerLine;frame.mcusPerColumn=mcusPerColumn;}
+var jfif=null;var adobe=null;var pixels=null;var frame,resetInterval;var quantizationTables=[],frames=[];var huffmanTablesAC=[],huffmanTablesDC=[];var fileMarker=readUint16();if(fileMarker!=0xFFD8){throw new Error("SOI not found");}
+fileMarker=readUint16();while(fileMarker!=0xFFD9){var i,j,l;switch(fileMarker){case 0xFF00:break;case 0xFFE0:case 0xFFE1:case 0xFFE2:case 0xFFE3:case 0xFFE4:case 0xFFE5:case 0xFFE6:case 0xFFE7:case 0xFFE
