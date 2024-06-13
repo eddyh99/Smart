@@ -28,6 +28,38 @@
                             <label for="produk" class="form-label">Nama Produk</label>
                             <input type="text" class="form-control" id="produk" name="produk" placeholder="Masukan produk..." required>
                         </div>
+                        <div class="mb-3">
+                            <label for="produk" class="form-label">Jenis Produk</label>
+                            <select name="jenisproduk" id="jenisproduk" class="form-select">
+                                <?php foreach($jenisproduk as $jp){?>
+                                    <option value="<?= $jp['id']?>"><?= $jp['jenis']?></option>
+                                <?php }?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="produk" class="form-label">Jenis Bahan</label>
+                            <select name="jenisbahan" id="jenisbahan" class="form-select">
+                                <?php foreach($jenisbahan as $jb){?>
+                                    <option value="<?= $jb['id']?>"><?= $jb['bahan']?> | <?= $jb['kualitas']?></option>
+                                <?php }?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal" class="form-label">Modal</label>
+                            <input type="number" class="form-control" id="modal" name="modal" placeholder="Masukan Modal..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="peminat" class="form-label">Peminat (%)</label>
+                            <input type="number" class="form-control" id="peminat" name="peminat" placeholder="Masukan peminat..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jual" class="form-label">Harga Jual</label>
+                            <input type="number" class="form-control" id="jual" name="jual" placeholder="Masukan Harga Jual..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="laba" class="form-label">Laba</label>
+                            <input type="number" class="form-control" id="laba" name="laba" placeholder="Masukan Laba..." required>
+                        </div>
                         <button type="submit" class="btn btn-danger mt-3">
                             <i class="ti ti-plus fs-5 me-1"></i>
                             Tambah Produk

@@ -14,7 +14,26 @@ class Smart extends CI_Controller
 
     }
 
+
     public function index()
+    {
+        $data = array(
+            'title'         => NAMETITLE . ' | Perangkingan',
+            'content'       => 'admin/smart/index',
+            'smart_active'   => 'active',
+            'extra'         => 'admin/smart/_js_index'
+        );
+        $this->load->view('layout/wrapper-dashboard', $data);
+    }
+
+    public function list_alternatifkritera()
+    {
+        $list = $this->datasmart->getData();
+        echo json_encode($list);
+    }
+
+
+    public function list_nilaiutility()
     {
         $products=$this->datasmart->getData();
         $kriteria=$this->datasmart->getBobot();
@@ -25,7 +44,8 @@ class Smart extends CI_Controller
         foreach ($kriteria as &$k) {
             $k['normalized_bobot'] = $k['bobot'] / $total_bobot;
         }
-
+    
+        
         //Normalisasi Matriks Keputusan
         $cmin_cmax = [];
         foreach ($kriteria_values as $kv) {
@@ -34,6 +54,40 @@ class Smart extends CI_Controller
                 'Cmax' => $kv['Cmax']
             ];
         }
+        // Apply the formulas
+        foreach ($products as &$product) {
+            $product['K1'] = ($cmin_cmax[1]['Cmax'] - $product['ModalNilai']) / ($cmin_cmax[1]['Cmax'] - $cmin_cmax[1]['Cmin']);
+            $product['K2'] = ($product['PeminatNilai'] - $cmin_cmax[2]['Cmin']) / ($cmin_cmax[2]['Cmax'] - $cmin_cmax[2]['Cmin']);
+            $product['K3'] = ($product['LabaNilai'] - $cmin_cmax[3]['Cmin']) / ($cmin_cmax[3]['Cmax'] - $cmin_cmax[3]['Cmin']);
+            $product['K4'] = ($cmin_cmax[4]['Cmax'] - $product['HargaJualNilai']) / ($cmin_cmax[4]['Cmax'] - $cmin_cmax[4]['Cmin']);
+            $product['K5'] = ($product['KualitasNilai'] - $cmin_cmax[5]['Cmin']) / ($cmin_cmax[5]['Cmax'] - $cmin_cmax[5]['Cmin']);
+        }
+
+        echo json_encode($products);
+    }
+
+    public function list_nilaiakhirnormalisasi()
+    {
+        $products=$this->datasmart->getData();
+        $kriteria=$this->datasmart->getBobot();
+        $kriteria_values = $this->datasmart->getMaxMin();
+
+        //Normalisasi bobot
+        $total_bobot = array_sum(array_column($kriteria, 'bobot'));
+        foreach ($kriteria as &$k) {
+            $k['normalized_bobot'] = $k['bobot'] / $total_bobot;
+        }
+        
+        
+        //Normalisasi Matriks Keputusan
+        $cmin_cmax = [];
+        foreach ($kriteria_values as $kv) {
+            $cmin_cmax[$kv['id_kriteria']] = [
+                'Cmin' => $kv['Cmin'],
+                'Cmax' => $kv['Cmax']
+            ];
+        }
+
         
         // Apply the formulas
         foreach ($products as &$product) {
@@ -54,11 +108,135 @@ class Smart extends CI_Controller
                 $product['K5'] * $kriteria[4]['normalized_bobot'];
         }
 
+        
         //Perangkingan
         usort($products, function($a, $b) {
             return $b['NormalizedScore'] <=> $a['NormalizedScore'];
         });
 
+        echo json_encode($products);
+
+    }
+
+    public function perangkingan()
+    {
+        $products=$this->datasmart->getData();
+        $kriteria=$this->datasmart->getBobot();
+        $kriteria_values = $this->datasmart->getMaxMin();
+
+        //Normalisasi bobot
+        $total_bobot = array_sum(array_column($kriteria, 'bobot'));
+        foreach ($kriteria as &$k) {
+            $k['normalized_bobot'] = $k['bobot'] / $total_bobot;
+        }
+        
+        
+        //Normalisasi Matriks Keputusan
+        $cmin_cmax = [];
+        foreach ($kriteria_values as $kv) {
+            $cmin_cmax[$kv['id_kriteria']] = [
+                'Cmin' => $kv['Cmin'],
+                'Cmax' => $kv['Cmax']
+            ];
+        }
+
+        
+        // Apply the formulas
+        foreach ($products as &$product) {
+            $product['K1'] = ($cmin_cmax[1]['Cmax'] - $product['ModalNilai']) / ($cmin_cmax[1]['Cmax'] - $cmin_cmax[1]['Cmin']);
+            $product['K2'] = ($product['PeminatNilai'] - $cmin_cmax[2]['Cmin']) / ($cmin_cmax[2]['Cmax'] - $cmin_cmax[2]['Cmin']);
+            $product['K3'] = ($product['LabaNilai'] - $cmin_cmax[3]['Cmin']) / ($cmin_cmax[3]['Cmax'] - $cmin_cmax[3]['Cmin']);
+            $product['K4'] = ($cmin_cmax[4]['Cmax'] - $product['HargaJualNilai']) / ($cmin_cmax[4]['Cmax'] - $cmin_cmax[4]['Cmin']);
+            $product['K5'] = ($product['KualitasNilai'] - $cmin_cmax[5]['Cmin']) / ($cmin_cmax[5]['Cmax'] - $cmin_cmax[5]['Cmin']);
+        }
+
+
+        //Normalisasi Data Set dengan Normalisasi Bobot
+        foreach ($products as &$product) {
+            $product['NormalizedScore'] = 
+                $product['K1'] * $kriteria[0]['normalized_bobot'] +
+                $product['K2'] * $kriteria[1]['normalized_bobot'] +
+                $product['K3'] * $kriteria[2]['normalized_bobot'] +
+                $product['K4'] * $kriteria[3]['normalized_bobot'] +
+                $product['K5'] * $kriteria[4]['normalized_bobot'];
+        }
+
+        
+        //Perangkingan
+        usort($products, function($a, $b) {
+            return $b['NormalizedScore'] <=> $a['NormalizedScore'];
+        });
+            
+        
+        foreach ($products as $rank => &$product) {
+            $product['Rank'] = $rank + 1;
+        }
+
+
+        // Display the ranked products
+        // foreach ($products as $dt) {
+        //     echo "Rank: {$dt['Rank']} : {$dt['ProductName']}, Score: {$dt['NormalizedScore']}<br>";
+        // }
+
+        echo json_encode($products);
+    }
+
+
+
+    public function kalkulasi()
+    {
+        $products=$this->datasmart->getData();
+        $kriteria=$this->datasmart->getBobot();
+        $kriteria_values = $this->datasmart->getMaxMin();
+
+        //Normalisasi bobot
+        $total_bobot = array_sum(array_column($kriteria, 'bobot'));
+        foreach ($kriteria as &$k) {
+            $k['normalized_bobot'] = $k['bobot'] / $total_bobot;
+        }
+        
+        echo '<pre>'.print_r($kriteria,true).'</pre>';
+        // echo '<pre>'.print_r($total_bobot,true).'</pre>';
+        
+        //Normalisasi Matriks Keputusan
+        $cmin_cmax = [];
+        foreach ($kriteria_values as $kv) {
+            $cmin_cmax[$kv['id_kriteria']] = [
+                'Cmin' => $kv['Cmin'],
+                'Cmax' => $kv['Cmax']
+            ];
+        }
+
+        // echo '<pre>'.print_r($cmin_cmax,true).'</pre>';
+        
+        // Apply the formulas
+        foreach ($products as &$product) {
+            $product['K1'] = ($cmin_cmax[1]['Cmax'] - $product['ModalNilai']) / ($cmin_cmax[1]['Cmax'] - $cmin_cmax[1]['Cmin']);
+            $product['K2'] = ($product['PeminatNilai'] - $cmin_cmax[2]['Cmin']) / ($cmin_cmax[2]['Cmax'] - $cmin_cmax[2]['Cmin']);
+            $product['K3'] = ($product['LabaNilai'] - $cmin_cmax[3]['Cmin']) / ($cmin_cmax[3]['Cmax'] - $cmin_cmax[3]['Cmin']);
+            $product['K4'] = ($cmin_cmax[4]['Cmax'] - $product['HargaJualNilai']) / ($cmin_cmax[4]['Cmax'] - $cmin_cmax[4]['Cmin']);
+            $product['K5'] = ($product['KualitasNilai'] - $cmin_cmax[5]['Cmin']) / ($cmin_cmax[5]['Cmax'] - $cmin_cmax[5]['Cmin']);
+        }
+        echo '<pre>'.print_r($products,true).'</pre>';
+
+        //Normalisasi Data Set dengan Normalisasi Bobot
+        foreach ($products as &$product) {
+            $product['NormalizedScore'] = 
+                $product['K1'] * $kriteria[0]['normalized_bobot'] +
+                $product['K2'] * $kriteria[1]['normalized_bobot'] +
+                $product['K3'] * $kriteria[2]['normalized_bobot'] +
+                $product['K4'] * $kriteria[3]['normalized_bobot'] +
+                $product['K5'] * $kriteria[4]['normalized_bobot'];
+        }
+
+        
+        //Perangkingan
+        usort($products, function($a, $b) {
+            return $b['NormalizedScore'] <=> $a['NormalizedScore'];
+        });
+
+        echo '<pre>'.print_r($products,true).'</pre>';
+            
         
         foreach ($products as $rank => &$product) {
             $product['Rank'] = $rank + 1;
@@ -69,5 +247,9 @@ class Smart extends CI_Controller
         foreach ($products as $dt) {
             echo "Rank: {$dt['Rank']} : {$dt['ProductName']}, Score: {$dt['NormalizedScore']}<br>";
         }
+
+        echo '<pre>'.print_r($products,true).'</pre>';
+
     }
+
 }

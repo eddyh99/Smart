@@ -3,10 +3,10 @@
     <!--  Row Daftar User -->
     <div class="row my-4">
         <div class="col-lg-12 d-flex align-items-strech">
-            <a href="<?= base_url()?>produk/tambah_produk" class="btn btn-danger d-flex align-items-center">
+            <a href="<?= base_url()?>guru/tambah_penilaian" class="btn btn-danger d-flex align-items-center">
                 <i class="ti ti-plus fs-5 me-2"></i>
                 <span>
-                    Tambah Produk
+                    Tambah Penilaian
                 </span>
             </a>
         </div>
@@ -16,17 +16,16 @@
         <div class="col-lg-12 d-flex align-items-strech">
             <div class="card w-100">
                 <div class="card-body">
-                    <h5 class="card-title fw-semibold mb-4 text-decoration-underline">List Produk</h5>
-                    <table id="table_list_produk" class="table table-striped" style="width:100%">
+                    <h5 class="card-title fw-semibold mb-4 text-decoration-underline">List Penilaian</h5>
+                    <table id="table_list_penilaian" class="table table-striped" style="width:100%">
                         <thead>
                             <tr>
-                                <th>Produk</th>
-                                <th>Jenis</th>
-                                <th>Bahan</th>
-                                <th>Modal</th>
-                                <th>Peminat</th>
-                                <th>Jual</th>
-                                <th>Laba</th>
+                                <th>No</th>
+                                <th>Nama</th>
+                                <th>Kehadiran</th>
+                                <th>Keaktifan</th>
+                                <th>Tanggung Jawab</th>
+                                <th>Tugas</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -34,13 +33,12 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th>Produk</th>
-                                <th>Jenis</th>
-                                <th>Bahan</th>
-                                <th>Modal</th>
-                                <th>Peminat</th>
-                                <th>Jual</th>
-                                <th>Laba</th>
+                                <th>No</th>
+                                <th>Nama</th>
+                                <th>Kehadiran</th>
+                                <th>Keaktifan</th>
+                                <th>Tanggung Jawab</th>
+                                <th>Tugas</th>
                                 <th>Aksi</th>
                             </tr>
                         </tfoot>

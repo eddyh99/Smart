@@ -11,6 +11,8 @@ class Produk extends CI_Controller
 			redirect('/');
 		}
         $this->load->model('Produk_model', 'produk');
+        $this->load->model('Jenis_model', 'jenis');
+        $this->load->model('Kriteria_model', 'kriteria');
 
     }
 
@@ -35,10 +37,16 @@ class Produk extends CI_Controller
 
     public function tambah_produk()
     {
+        $jenisproduk = $this->jenis->getListJenis();
+        $jenisbahan = $this->kriteria->getListBahan();
+
+
         $data = array(
             'title'         => NAMETITLE . ' | Tambah Produk',
             'content'       => 'admin/produk/tambah_produk',
             'produk_active'   => 'active',
+            'jenisproduk'   => $jenisproduk,
+            'jenisbahan'    => $jenisbahan
         );
         $this->load->view('layout/wrapper-dashboard', $data);
     }
@@ -46,6 +54,12 @@ class Produk extends CI_Controller
     public function tambah_proses()
     {
         $this->form_validation->set_rules('produk', 'Nama Produk', 'trim|required');
+        $this->form_validation->set_rules('jenisproduk', 'Jenis Produk', 'trim|required');
+        $this->form_validation->set_rules('jenisbahan', 'Jenis Bahan', 'trim|required');
+        $this->form_validation->set_rules('modal', 'Modal', 'trim|required');
+        $this->form_validation->set_rules('peminat', 'peminat', 'trim|required');
+        $this->form_validation->set_rules('jual', 'jual', 'trim|required');
+        $this->form_validation->set_rules('laba', 'laba', 'trim|required');
 
         if ($this->form_validation->run() == FALSE) {
 			$this->session->set_flashdata('error', $this->message->error_msg(validation_errors()));
@@ -55,18 +69,34 @@ class Produk extends CI_Controller
 
         $input      = $this->input;
         $produk     = $this->security->xss_clean($input->post('produk'));
+        $jenisproduk     = $this->security->xss_clean($input->post('jenisproduk'));
+        $jenisbahan     = $this->security->xss_clean($input->post('jenisbahan'));
+        $modal     = $this->security->xss_clean($input->post('modal'));
+        $peminat     = $this->security->xss_clean($input->post('peminat'));
+        $jual     = $this->security->xss_clean($input->post('jual'));
+        $laba     = $this->security->xss_clean($input->post('laba'));
 
-        $mdata = array(
-            "namaproduk"    => $produk,
-            "userid"        => $_SESSION["logged_status"]["username"],
-            "created_at"    => date("Y-m-d H:i:s"),
-            "updated_at"    => date("Y-m-d H:i:s"),
+
+        $dataproduk = array(
+            "nama"          => $produk,
+            "id_jenis"         => $jenisproduk,
+        );
+            
+        $penilaian = array(
+            "modal"        => $modal,
+            "peminat"      => $peminat,
+            "jual"         => $jual,
+            "laba"         => $laba,
+            "bahan_id"         => $jenisbahan,
         );
 
-        $result = $this->produk->insertProduk($mdata);
+        // echo '<pre>'.print_r($dataproduk,true).'</pre>';
+        // echo '<pre>'.print_r($penilaian,true).'</pre>';
+        // die;
+        $result = $this->produk->insertProduk($dataproduk, $penilaian);
 
         if($result['code'] == 200) {
-            $this->session->set_flashdata('success', $result['messages']);
+            $this->session->set_flashdata('success', $this->message->success_msg());
             redirect('produk');
             return;
         }else{
@@ -127,9 +157,9 @@ class Produk extends CI_Controller
         }
     }
 
-    public function delete_produk($id){
-        $id_produk	= base64_decode($this->security->xss_clean($id));
-        $result = $this->produk->deleteProduk($id_produk);
+    public function delete_produk($id_produk){
+        $id	= base64_decode($this->security->xss_clean($id_produk));
+        $result = $this->produk->deleteProduk($id);
 
         if($result['code'] == 200) {
             $this->session->set_flashdata('success', $this->message->delete_msg());

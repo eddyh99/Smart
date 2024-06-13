@@ -25,7 +25,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 */
 
 if ($_SERVER['HTTP_HOST'] == 'localhost') {
-    $addurl = '/'.'peramalan-wma/'; 
+    $addurl = '/'.'smart/'; 
 }else{
     $addurl = '/'; 
 }

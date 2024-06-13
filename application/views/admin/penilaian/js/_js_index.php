@@ -1,16 +1,11 @@
-<style>
-	.th-role {
-		width: 500px;
-	}
-</style>
 
 <script type="text/javascript">
 
     $(document).ready( function () {
-        $('#table_list_produk').DataTable({
+        $('#table_list_penilaian').DataTable({
             "scrollX": true,
 			"ajax": {
-				"url": "<?=base_url()?>produk/list_produk",
+				"url": "<?=base_url()?>guru/list_penilaian",
 				"type": "POST",
 				"dataSrc":function (data){
 					console.log(data);
@@ -18,19 +13,23 @@
 				}
 			},
 			"columns": [
-				{ data: 'namaproduk' },
-				{ data: 'jenisproduk' },
-				{ data: 'jenisbahan' },
-				{ data: 'modal' },
-				{ data: 'peminat' },
-				{ data: 'jual' },
-				{ data: 'laba' },
+				{ 	data: null,
+					"sortable": false, 
+       					render: function (data, type, row, meta) {
+                 		return meta.row + meta.settings._iDisplayStart + 1;
+                	}
+				},
+				{ data: 'guru_nama' },
+				{ data: 'skala_absensi' },
+				{ data: 'skala_keaktifan' },
+				{ data: 'skala_rombel' },
+				{ data: 'skala_tugas_lebih' },
 			],
             "aoColumnDefs": [{	
-				"aTargets": [7],
+				"aTargets": [6],
 				"mRender": function (data, type, full, meta){
-					// button='<a href="<?=base_url()?>produk/edit_produk/'+encodeURI(btoa(full.idproduk))+'" class="btn btn-primary mx-1 my-1"><i class="ti ti-pencil-minus fs-4"></i></a>'
-					button ='<a href="<?=base_url()?>produk/delete_produk/'+encodeURI(btoa(full.idproduk))+'" class="del-data btn btn-warning mx-1 my-1"><i class="ti ti-trash"></i></a>';
+					button='<a href="<?=base_url()?>guru/edit_penilaian/'+encodeURI(btoa(full.id))+'" class="btn btn-primary mx-1 my-1"><i class="ti ti-pencil-minus fs-4"></i></a>'
+					button = button + '<a href="<?=base_url()?>guru/delete_penilaian/'+encodeURI(btoa(full.id))+'" class="del-data btn btn-warning mx-1 my-1"><i class="ti ti-trash"></i></a>';
 					return button;
 				}
 			}],

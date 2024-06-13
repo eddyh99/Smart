@@ -50,7 +50,7 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link <?= @$bahan_active?>" href="<?= base_url()?>kriteria/bahan" aria-expanded="false">
                         <span>
-                            <i class="ti ti-notes"></i>
+                            <i class="ti ti-propeller"></i>
                         </span>
                         <span class="hide-menu">Kualitas Bahan</span>
                     </a>
@@ -58,33 +58,33 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link <?= @$jenis_active?>" href="<?= base_url()?>Jenis" aria-expanded="false">
                         <span>
-                            <i class="ti ti-notes"></i>
+                            <i class="ti ti-box"></i>
                         </span>
                         <span class="hide-menu">Jenis Produk</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
-                    <a class="sidebar-link <?= @$guru_active?>" href="<?= base_url()?>Produk" aria-expanded="false">
+                    <a class="sidebar-link <?= @$produk_active?>" href="<?= base_url()?>produk" aria-expanded="false">
                         <span>
-                            <i class="ti ti-school"></i>
+                            <i class="ti ti-shirt"></i>
                         </span>
                         <span class="hide-menu">Produk</span>
                     </a>
                 </li>
-                <li class="sidebar-item">
+                <!-- <li class="sidebar-item">
                     <a class="sidebar-link <?= @$penilaian_active?>" href="<?= base_url()?>guru/penilaian" aria-expanded="false">
                         <span>
                             <i class="ti ti-checklist"></i>
                         </span>
                         <span class="hide-menu">Penilaian</span>
                     </a>
-                </li>
+                </li> -->
                 <li class="sidebar-item">
-                    <a class="sidebar-link <?= @$topsis_active?>" href="<?= base_url()?>topsis" aria-expanded="false">
+                    <a class="sidebar-link <?= @$smart_active?>" href="<?= base_url()?>smart" aria-expanded="false">
                         <span>
                             <i class="ti ti-crown"></i>
                         </span>
-                        <span class="hide-menu">Perangkingan TOPSIS</span>
+                        <span class="hide-menu">Perangkingan SMART</span>
                     </a>
                 </li>
                 <li class="sidebar-item mb-5 pb-5">
@@ -112,7 +112,7 @@
                 <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="<?= base_url()?>assets/img/user-4.jpg" alt="" width="35" height="35" class="rounded-circle">
+                            <img src="<?= base_url()?>assets/img/user-2.jpg" alt="" width="35" height="35" class="rounded-circle">
                         </a>
                     </li>
                     <li class="nav-item dropdown pe-3" style="border-right: 2px solid white;">
